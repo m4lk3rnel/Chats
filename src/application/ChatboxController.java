@@ -80,9 +80,7 @@ public class ChatboxController implements Initializable {
 
 	}
 	
-	EventHandler<KeyEvent> hnd = new EventHandler<KeyEvent>()
-	{
-
+	EventHandler<KeyEvent> hnd = new EventHandler<KeyEvent>() {
 		@Override
 		public void handle(KeyEvent ke) {
 			if (ke.getCode().equals(KeyCode.ENTER)) {
@@ -92,7 +90,7 @@ public class ChatboxController implements Initializable {
 	};
 	
 	private void scrollToEnd() {
-	    // Set vvalue to scroll to the end
+	    // Set value to scroll to the end
 		System.out.println(scrollpaneChatbox);
 		scrollpaneChatbox.setVvalue(1.0);
 	}
@@ -116,6 +114,9 @@ public class ChatboxController implements Initializable {
 	@FXML
 	public void on_clicked_close_button()
 	{
+		// TODO
+		// tell server you left
+		
 		try {
 			outputStream.write(username + " has left the chat!");
 			outputStream.newLine();
@@ -136,106 +137,92 @@ public class ChatboxController implements Initializable {
 	}
 	
 	public void connectToServer(String serverIP, int serverPORT) {
+		
 		try {
             socket = new Socket(serverIP, serverPORT);
             outputStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
+            inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            
+            scrollToEnd();
             new Thread(() -> handleServerMessages(socket)).start();
 
         } catch (Exception e) {
         	Alert a = new Alert(AlertType.ERROR, "Server not started.", ButtonType.OK);
         	a.show();
         	return;
-            
         }
 	}
 	
 	
-	public void initializeChatbox(String username, String serverIP, int serverPort)
-	{
+	public void initializeChatbox(String username, String serverIP, int serverPort) {
 		
-		LocalTime currentTime = LocalTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        String formattedTime = currentTime.format(formatter);
-        
 		this.username = username;
 		connectedAsUsernameLabel.setText(username);
 		
 		connectToServer(serverIP, serverPort);
-
-		textFlowAppend(username + " ", 16, true, Color.WHITE);
-		textFlowAppend("has joined the chat!  ", 16, false, Color.WHITE);
-		textFlowAppend(formattedTime, 11, false, Color.GREY);
-		textFlowAppend();
 		
-		try {
-			outputStream.write(username + " has joined the chat!");
-			outputStream.newLine();
-			outputStream.flush();
-		} catch(IOException e) {
-			System.out.println("Server not started.");
-		}
 		scrollToEnd();
 	}
 	
+	// TODO
+	// extend server message handling
 	private void handleServerMessages(Socket socket) {
-        try {
-			inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            while (true) {
-                String message = (String) inputStream.readLine();
-                Platform.runLater(() -> appendMessage(message));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+				
+		Platform.runLater(() -> {
+			
+			String serverInput;
+			
+			try {
+				serverInput = inputStream.readLine();
+				
+				String[] message = serverInput.split(" ", 2);
+                
+                if (serverInput.contains(" has joined the chat!"))
+                {
+                	textFlowAppend(message[0] + " ", 16, true, Color.WHITE);
+            		textFlowAppend("has joined the chat!  ", 16, false, Color.WHITE);
+            		textFlowAppend("TIME", 11, false, Color.GREY);
+            		textFlowAppend();
+                }
+                else if (serverInput.contains(" has left the chat!"))
+                {
+                	textFlowAppend(message[0] + " ", 16, true, Color.WHITE);
+            		textFlowAppend("has left the chat!  ", 16, false, Color.WHITE);
+            		textFlowAppend("TIME", 11, false, Color.GREY);
+            		textFlowAppend();
+                }
+                else if (serverInput.contains("SERVER: closed."))
+                {
+            		textFlowAppend(serverInput, 16, false, Color.RED);
+            		textFlowAppend("TIME", 11, false, Color.GREY);
+            		textFlowAppend();
+            		return;
+                }
+                else {
+                	textFlowAppend(message[0] + " ", 16, true, Color.WHITE);
+            		textFlowAppend("TIME", 11, false, Color.GREY);
+            		textFlowAppend();
+            		textFlowAppend(message[1], 16, false, Color.WHITE);
+            		textFlowAppend();
+                }
+                
+        		scrollToEnd();
+        		handleServerMessages(socket);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		});
     }
 	
-	public void appendMessage(String message) {
-		LocalTime currentTime = LocalTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        String formattedTime = currentTime.format(formatter);
-        
-        String[] arrOfStr = message.split(" ", 2);
-        
-        if(message.contains(" has joined the chat!"))
-        {
-        	textFlowAppend(arrOfStr[0] + " ", 16, true, Color.WHITE);
-    		textFlowAppend("has joined the chat!  ", 16, false, Color.WHITE);
-    		textFlowAppend(formattedTime, 11, false, Color.GREY);
-    		textFlowAppend();
-        }
-        else if (message.contains(" has left the chat!"))
-        {
-        	textFlowAppend(arrOfStr[0] + " ", 16, true, Color.WHITE);
-    		textFlowAppend("has left the chat!  ", 16, false, Color.WHITE);
-    		textFlowAppend(formattedTime, 11, false, Color.GREY);
-    		textFlowAppend();
-        }
-        else if (message.contains("SERVER: closed."))
-        {
-    		textFlowAppend(message, 16, false, Color.RED);
-    		textFlowAppend(formattedTime, 11, false, Color.GREY);
-    		textFlowAppend();
-        }
-        else { 
-        	textFlowAppend(arrOfStr[0] + " ", 16, true, Color.WHITE);
-    		textFlowAppend(formattedTime, 11, false, Color.GREY);
-    		textFlowAppend();
-    		textFlowAppend(arrOfStr[1], 16, false, Color.WHITE);
-    		textFlowAppend();
-        }
-        
-        
-		scrollToEnd();
-	}
-
+	// sends messages to the server
 	@FXML
 	public void sendMessage()
 	{
 		String message = typeMessageTextField.getText();
 		
-		if(message.isBlank())
+		if (message.isBlank())
 		{
 			return;
 		}
@@ -248,16 +235,6 @@ public class ChatboxController implements Initializable {
 			e.printStackTrace();
 		}
 		
-		LocalTime currentTime = LocalTime.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-		String formattedTime = currentTime.format(formatter);
-        
-		textFlowAppend(username + " ", 16, true, Color.WHITE);
-		textFlowAppend(formattedTime, 11, false, Color.GREY);
-		textFlowAppend();
-		textFlowAppend(message, 16, false, Color.WHITE);
-		textFlowAppend();
-//		
 		typeMessageTextField.setText("");
 	}
 	

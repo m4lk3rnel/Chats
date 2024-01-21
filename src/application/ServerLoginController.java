@@ -18,7 +18,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-public class ServerLoginController implements Initializable {
+public class ServerLoginController {
+	
 	@FXML
 	private AnchorPane serverLoginWindow;
 	
@@ -43,11 +44,6 @@ public class ServerLoginController implements Initializable {
 	
 	private double x = 0;
 	private double y = 0;
-	
-	@Override
-	public void initialize(URL arg0, ResourceBundle arg1) {
-		
-	}
 	
 	@FXML
 	public void on_dragged(MouseEvent event)
@@ -87,7 +83,16 @@ public class ServerLoginController implements Initializable {
 	public void on_clicked_start_button(ActionEvent event) throws IOException
 	{
 		serverIP = serverIPTextField.getText();
-		serverPort = Integer.valueOf(serverPortTextField.getText());
+		
+		try {
+			// TODO tell user to input an actual integer
+			serverPort = Integer.valueOf(serverPortTextField.getText());
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// TODO check that this user name is not already being user
 		username = usernameTextField.getText();
 		
 		FXMLLoader loader = new FXMLLoader(getClass().getResource("Chatbox.fxml"));
@@ -107,11 +112,5 @@ public class ServerLoginController implements Initializable {
 		
 		stage.setResizable(false);
 		stage.show();
-		
-	}
-	
-	public String getUsername()
-	{
-		return username;
 	}
 }
