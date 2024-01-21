@@ -118,11 +118,12 @@ public class ChatboxController implements Initializable {
 	{
 		// TODO
 		// tell server you left
-		
 		try {
 			outputStream.write("4");
 			outputStream.newLine();
 			outputStream.flush();
+			System.exit(0);
+			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -138,40 +139,39 @@ public class ChatboxController implements Initializable {
 		stage.setIconified(true);
 	}
 	
-	public void connectToServer(String serverIP, int serverPORT) {
-		
-		try {
-            socket = new Socket(serverIP, serverPORT);
-            outputStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            
-            
-            // TODO
-            // check if user name is not already in use
-            outputStream.write("1>8^(" + username);
-            outputStream.newLine();
-			outputStream.flush();
-            
-            
-            new Thread(() -> handleServerMessages()).start();
-
-        } catch (Exception e) {
-        	Alert a = new Alert(AlertType.ERROR, "Server not started.", ButtonType.OK);
-        	a.show();
-        	return;
-        }
-	}
-	
-	
-	public void initializeChatbox(String username, String serverIP, int serverPort) {
-		
+	public void initializeChatbox(String username, String serverIP, int serverPort) throws Exception {
+			
 		this.username = username;
 		connectedAsUsernameLabel.setText(username);
+		
 		
 		connectToServer(serverIP, serverPort);
 		
 		scrollToEnd();
 	}
+	
+	public void connectToServer(String serverIP, int serverPORT) throws Exception {
+		
+        socket = new Socket(serverIP, serverPORT);
+        outputStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        
+        
+        // TODO
+        // check if user name is not already in use
+        outputStream.write("1>8^(" + username);
+        outputStream.newLine();
+		outputStream.flush();
+        
+		
+		
+		
+		
+        Thread messageHandling = new Thread(() -> handleServerMessages());
+        messageHandling.setName("SERVER MESSAGE HANDLING");
+        messageHandling.start();
+	}
+	
 	
 	// TODO
 	// extend server message handling
@@ -225,6 +225,8 @@ public class ChatboxController implements Initializable {
 			    		catch (Exception e) {
 			    			// ignore
 			    		}
+			    		
+			    		Platform.exit();
 						break;
 						
 					// new user joined
@@ -285,7 +287,11 @@ public class ChatboxController implements Initializable {
 		if (keyboardInput.equals("/quit")) {
 			try {
 				outputStream.write("4");
+				outputStream.newLine();
+				outputStream.flush();
+				
 				socket.close();
+				Platform.exit();
 			}
 			catch (Exception e) {
 				// ignore

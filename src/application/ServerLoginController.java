@@ -12,7 +12,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -102,7 +105,18 @@ public class ServerLoginController {
 		Parent root = loader.load();
 		
 		ChatboxController cc = loader.getController();
-		cc.initializeChatbox(username, serverIP, serverPort);
+		
+		
+		try {
+			cc.initializeChatbox(username, serverIP, serverPort);
+		}
+		catch (Exception e) {
+			Alert a = new Alert(AlertType.ERROR, e.getMessage(), ButtonType.OK);
+        	a.show();
+        	return;
+		}
+		
+		
 		
 		Scene scene = new Scene(root);
 		scene.setFill(null);
