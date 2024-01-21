@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.InnerShadow?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="serverLoginWindow" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="409.0" prefWidth="600.0" style="-fx-background-color: #120E21; -fx-background-radius: 10;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.ServerLoginController">
+   <effect>
+      <InnerShadow>
+         <color>
+            <Color red="0.06578947603702545" green="0.06578947603702545" blue="0.06578947603702545" />
+         </color>
+      </InnerShadow>
+   </effect>
+   <children>
+      <AnchorPane layoutX="5.0" layoutY="5.0" prefHeight="400.0" prefWidth="590.0" style="-fx-border-color: #403EA0; -fx-border-radius: 10;">
+         <children>
+            <Label layoutX="43.0" layoutY="65.0" text="START CHAT" textFill="WHITE">
+               <font>
+                  <Font name="Arial" size="18.0" />
+               </font>
+            </Label>
+            <Line endX="433.0" layoutX="128.0" layoutY="96.0" startX="-100.0" stroke="#29294e" />
+            <Line endX="433.0" layoutX="129.0" layoutY="365.0" startX="-100.0" stroke="#29294e" />
+            <TextField fx:id="serverIPTextField" layoutX="29.0" layoutY="115.0" prefHeight="51.0" prefWidth="534.0" promptText="Server IP (e.g.: localhost)" style="-fx-background-color: #120E21; -fx-border-color: #29294E; -fx-border-radius: 50; -fx-font-size: 14; -fx-text-fill: white;">
+               <padding>
+                  <Insets left="26.0" />
+               </padding>
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </TextField>
+            <TextField fx:id="serverPortTextField" layoutX="28.0" layoutY="175.0" prefHeight="51.0" prefWidth="534.0" promptText="Server Port (e.g: 9999)" style="-fx-background-color: #120E21; -fx-border-color: #29294E; -fx-border-radius: 50; -fx-font-size: 14; -fx-text-fill: white;">
+               <padding>
+                  <Insets left="26.0" />
+               </padding>
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </TextField>
+            <Button focusTraversable="false" layoutX="145.0" layoutY="299.0" mnemonicParsing="false" onAction="#on_clicked_start_button" prefHeight="51.0" prefWidth="300.0" style="-fx-background-color: #403EA0; -fx-background-radius: 30;" text="START CHAT" textAlignment="CENTER" textFill="WHITE">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+            <TextField fx:id="usernameTextField" layoutX="29.0" layoutY="236.0" prefHeight="51.0" prefWidth="534.0" promptText="Username" style="-fx-background-color: #120E21; -fx-border-color: #29294E; -fx-border-radius: 50; -fx-font-size: 14; -fx-text-fill: white;">
+               <padding>
+                  <Insets left="26.0" />
+               </padding>
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </TextField>
+         </children>
+      </AnchorPane>
+      <HBox fx:id="serverLoginWindowTopBar" alignment="CENTER_RIGHT" nodeOrientation="LEFT_TO_RIGHT" onMouseDragged="#on_dragged" onMousePressed="#on_clicked" prefHeight="51.0" prefWidth="600.0" style="-fx-background-color: transparent;">
+         <children>
+            <Button fx:id="minimizeButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#on_clicked_minimize_button" prefHeight="51.0" prefWidth="46.0" style="-fx-background-color: transparent;">
+               <graphic>
+                  <ImageView fitHeight="16.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../assets/—.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+            <Button fx:id="closeButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#on_clicked_close_button" prefHeight="51.0" prefWidth="46.0" style="-fx-background-color: transparent;">
+               <graphic>
+                  <ImageView fitHeight="16.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../assets/X.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </HBox>
+   </children>
+</AnchorPane>
