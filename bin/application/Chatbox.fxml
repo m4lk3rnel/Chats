@@ -33,7 +33,7 @@
             </Label>
             <TextField fx:id="typeMessageTextField" focusTraversable="false" layoutX="29.0" layoutY="715.0" prefHeight="51.0" prefWidth="534.0" promptText="Your message here..." style="-fx-background-color: #120E21; -fx-border-color: #29294E; -fx-border-radius: 50; -fx-font-size: 14; -fx-text-fill: white;">
                <padding>
-                  <Insets left="26.0" />
+                  <Insets left="26.0" right="110.0" />
                </padding>
                <font>
                   <Font size="14.0" />
@@ -59,12 +59,12 @@
                   </AnchorPane>
               </content>
             </ScrollPane>
-            <Label layoutX="92.0" layoutY="64.0" text="- Connected as: " textFill="#9a9a9a">
+            <Label layoutX="92.0" layoutY="64.0" text="— Connected as:    " textFill="#9a9a9a">
                <font>
                   <Font size="17.0" />
                </font>
             </Label>
-            <Label fx:id="connectedAsUsernameLabel" layoutX="214.0" layoutY="63.0" textFill="WHITE">
+            <Label fx:id="connectedAsUsernameLabel" layoutX="230.0" layoutY="63.0" textFill="WHITE">
                <font>
                   <Font size="18.0" />
                </font>

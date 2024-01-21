@@ -159,12 +159,17 @@ public class ChatboxController implements Initializable {
         
         // TODO
         // check if user name is not already in use
+        // WORK IN PROGRESS
         outputStream.write("1>8^(" + username);
         outputStream.newLine();
 		outputStream.flush();
         
+		String temp = inputStream.readLine();
+		String[] tempArr = temp.split(Pattern.quote(">8^("), 2);
 		
-		
+		if (tempArr[0] == "99") {
+			throw new Exception(tempArr[1]);
+		}
 		
 		
         Thread messageHandling = new Thread(() -> handleServerMessages());
@@ -189,10 +194,11 @@ public class ChatboxController implements Initializable {
 					// message from user to everyone
 					case 0:
 						// time, nick, message
-						textFlowAppend("[" + message[1] + "] ", 16, true, Color.WHITE);
-			    		textFlowAppend("(" + message[2] + ") ", 11, false, Color.GREY);
+						textFlowAppend(message[2], 16, true, Color.WHITE);
+			    		textFlowAppend("  " + message[1], 12, false, Color.GREY);
 			    		textFlowAppend();
-			    		textFlowAppend(message[3], 16, false, Color.WHITE);
+			    		textFlowAppend();
+			    		textFlowAppend(message[3], 14, false, Color.WHITE);
 			    		textFlowAppend();
 						break;
 					
@@ -232,18 +238,18 @@ public class ChatboxController implements Initializable {
 					// new user joined
 					case 5:
 						// time, nick
-						textFlowAppend("(" + message[2] + ") ", 16, true, Color.WHITE);
-			    		textFlowAppend("has joined the chat!  ", 16, false, Color.WHITE);
-			    		textFlowAppend("[" + message[1] + "]", 11, false, Color.GREY);
+						textFlowAppend(message[2], 16, true, Color.WHITE);
+			    		textFlowAppend(" has joined the chat! ", 14, false, Color.WHITE);
+			    		textFlowAppend(message[1], 12, false, Color.GREY);
 			    		textFlowAppend();
 						break;
 						
 					// user has quit
 					case 6:
 						// time, nick
-						textFlowAppend("(" + message[2] + ") ", 16, true, Color.WHITE);
-			    		textFlowAppend("has left the chat!  ", 16, false, Color.WHITE);
-			    		textFlowAppend("[" + message[1] + "]", 11, false, Color.GREY);
+						textFlowAppend(message[2], 16, true, Color.WHITE);
+			    		textFlowAppend(" has left the chat!  ", 14, false, Color.WHITE);
+			    		textFlowAppend(message[1], 12, false, Color.GREY);
 			    		textFlowAppend();
 						break;
 						
@@ -261,7 +267,9 @@ public class ChatboxController implements Initializable {
 						System.out.println("Unknown opcode [" + message[0] + "]");
 						break;
 					}
-						
+					
+					textFlowAppend();
+					textFlowAppend();
 					scrollToEnd();
 				});
 				
