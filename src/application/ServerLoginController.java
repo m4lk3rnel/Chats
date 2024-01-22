@@ -12,13 +12,17 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-public class ServerLoginController implements Initializable {
+public class ServerLoginController {
+	
 	@FXML
 	private AnchorPane serverLoginWindow;
 	
@@ -43,11 +47,6 @@ public class ServerLoginController implements Initializable {
 	
 	private double x = 0;
 	private double y = 0;
-	
-	@Override
-	public void initialize(URL arg0, ResourceBundle arg1) {
-		
-	}
 	
 	@FXML
 	public void on_dragged(MouseEvent event)
@@ -87,7 +86,16 @@ public class ServerLoginController implements Initializable {
 	public void on_clicked_start_button(ActionEvent event) throws IOException
 	{
 		serverIP = serverIPTextField.getText();
-		serverPort = Integer.valueOf(serverPortTextField.getText());
+		
+		try {
+			// TODO tell user to input an actual integer
+			serverPort = Integer.valueOf(serverPortTextField.getText());
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// TODO check that this user name is not already being user
 		username = usernameTextField.getText();
 		
 		FXMLLoader loader = new FXMLLoader(getClass().getResource("Chatbox.fxml"));
@@ -97,7 +105,18 @@ public class ServerLoginController implements Initializable {
 		Parent root = loader.load();
 		
 		ChatboxController cc = loader.getController();
-		cc.initializeChatbox(username, serverIP, serverPort);
+		
+		
+		try {
+			cc.initializeChatbox(username, serverIP, serverPort);
+		}
+		catch (Exception e) {
+			Alert a = new Alert(AlertType.ERROR, e.getMessage(), ButtonType.OK);
+        	a.show();
+        	return;
+		}
+		
+		
 		
 		Scene scene = new Scene(root);
 		scene.setFill(null);
@@ -107,11 +126,5 @@ public class ServerLoginController implements Initializable {
 		
 		stage.setResizable(false);
 		stage.show();
-		
-	}
-	
-	public String getUsername()
-	{
-		return username;
 	}
 }

@@ -5,11 +5,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URL;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -57,7 +59,7 @@ public class ChatboxController implements Initializable {
 	
     private BufferedWriter outputStream;
     private BufferedReader inputStream;
-
+    
     private Socket socket;
 	
 	private double x = 0;
@@ -80,9 +82,7 @@ public class ChatboxController implements Initializable {
 
 	}
 	
-	EventHandler<KeyEvent> hnd = new EventHandler<KeyEvent>()
-	{
-
+	EventHandler<KeyEvent> hnd = new EventHandler<KeyEvent>() {
 		@Override
 		public void handle(KeyEvent ke) {
 			if (ke.getCode().equals(KeyCode.ENTER)) {
@@ -92,7 +92,7 @@ public class ChatboxController implements Initializable {
 	};
 	
 	private void scrollToEnd() {
-	    // Set vvalue to scroll to the end
+	    // Set value to scroll to the end
 		System.out.println(scrollpaneChatbox);
 		scrollpaneChatbox.setVvalue(1.0);
 	}
@@ -116,11 +116,15 @@ public class ChatboxController implements Initializable {
 	@FXML
 	public void on_clicked_close_button()
 	{
+		// TODO
+		// tell server you left
 		try {
-			outputStream.write(username + " has left the chat!");
+			outputStream.write("4");
 			outputStream.newLine();
 			outputStream.flush();
-		} catch(IOException e) {
+			System.exit(0);
+			
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		
@@ -135,129 +139,185 @@ public class ChatboxController implements Initializable {
 		stage.setIconified(true);
 	}
 	
-	public void connectToServer(String serverIP, int serverPORT) {
-		try {
-            socket = new Socket(serverIP, serverPORT);
-            outputStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-            new Thread(() -> handleServerMessages(socket)).start();
-
-        } catch (Exception e) {
-        	Alert a = new Alert(AlertType.ERROR, "Server not started.", ButtonType.OK);
-        	a.show();
-        	return;
-            
-        }
-	}
-	
-	
-	public void initializeChatbox(String username, String serverIP, int serverPort)
-	{
-		
-		LocalTime currentTime = LocalTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        String formattedTime = currentTime.format(formatter);
-        
+	public void initializeChatbox(String username, String serverIP, int serverPort) throws Exception {
+			
 		this.username = username;
 		connectedAsUsernameLabel.setText(username);
 		
-		connectToServer(serverIP, serverPort);
-
-		textFlowAppend(username + " ", 16, true, Color.WHITE);
-		textFlowAppend("has joined the chat!  ", 16, false, Color.WHITE);
-		textFlowAppend(formattedTime, 11, false, Color.GREY);
-		textFlowAppend();
 		
-		try {
-			outputStream.write(username + " has joined the chat!");
-			outputStream.newLine();
-			outputStream.flush();
-		} catch(IOException e) {
-			System.out.println("Server not started.");
-		}
+		connectToServer(serverIP, serverPort);
+		
 		scrollToEnd();
 	}
 	
-	private void handleServerMessages(Socket socket) {
-        try {
-			inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            while (true) {
-                String message = (String) inputStream.readLine();
-                Platform.runLater(() -> appendMessage(message));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+	public void connectToServer(String serverIP, int serverPORT) throws Exception {
+		
+        socket = new Socket(serverIP, serverPORT);
+        outputStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        
+        
+        // TODO
+        // check if user name is not already in use
+        // WORK IN PROGRESS
+        outputStream.write("1>8^(" + username);
+        outputStream.newLine();
+		outputStream.flush();
+        
+		String temp = inputStream.readLine();
+		String[] tempArr = temp.split(Pattern.quote(">8^("), 2);
+		
+		if (tempArr[0] == "99") {
+			throw new Exception(tempArr[1]);
+		}
+		
+		
+        Thread messageHandling = new Thread(() -> handleServerMessages());
+        messageHandling.setName("SERVER MESSAGE HANDLING");
+        messageHandling.start();
+	}
+	
+	
+	// TODO
+	// extend server message handling
+	private void handleServerMessages() {
+		
+		while (!socket.isClosed()) {
+		
+			try {
+				String serverInput = inputStream.readLine();
+				Platform.runLater(() -> {
+					String[] message = serverInput.split(Pattern.quote(">8^("), 4);
+			        
+					switch (Integer.parseInt(message[0])) {
+					
+					// message from user to everyone
+					case 0:
+						// time, nick, message
+						textFlowAppend(message[2], 16, true, Color.WHITE);
+			    		textFlowAppend("  " + message[1], 12, false, Color.GREY);
+			    		textFlowAppend();
+			    		textFlowAppend();
+			    		textFlowAppend(message[3], 14, false, Color.WHITE);
+			    		textFlowAppend();
+						break;
+					
+					// TODO
+					// whisper from user
+					case 1:
+						// time, nick, message
+						break;
+						
+					// message from administrator to everyone
+					case 2:
+						// time, message
+						break;
+					
+					// user changed their nickname
+					case 3:
+						// time, nick, new nick
+						break;
+					
+					// server is shutting down
+					case 4:
+						// time
+						textFlowAppend("Server shut down ", 16, false, Color.RED);
+			    		textFlowAppend("[" + message[1] + "]", 11, false, Color.GREY);
+			    		textFlowAppend();
+			    		
+			    		try {
+			    			socket.close();
+			    		}
+			    		catch (Exception e) {
+			    			// ignore
+			    		}
+			    		
+			    		Platform.exit();
+						break;
+						
+					// new user joined
+					case 5:
+						// time, nick
+						textFlowAppend(message[2], 16, true, Color.WHITE);
+			    		textFlowAppend(" has joined the chat! ", 14, false, Color.WHITE);
+			    		textFlowAppend(message[1], 12, false, Color.GREY);
+			    		textFlowAppend();
+						break;
+						
+					// user has quit
+					case 6:
+						// time, nick
+						textFlowAppend(message[2], 16, true, Color.WHITE);
+			    		textFlowAppend(" has left the chat!  ", 14, false, Color.WHITE);
+			    		textFlowAppend(message[1], 12, false, Color.GREY);
+			    		textFlowAppend();
+						break;
+						
+					// error
+					case 99:
+						// error
+						break;
+						
+					// general message from server
+					case 100:
+						// general message
+						break;
+						
+					default:
+						System.out.println("Unknown opcode [" + message[0] + "]");
+						break;
+					}
+					
+					textFlowAppend();
+					textFlowAppend();
+					scrollToEnd();
+				});
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
     }
 	
-	public void appendMessage(String message) {
-		LocalTime currentTime = LocalTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        String formattedTime = currentTime.format(formatter);
-        
-        String[] arrOfStr = message.split(" ", 2);
-        
-        if(message.contains(" has joined the chat!"))
-        {
-        	textFlowAppend(arrOfStr[0] + " ", 16, true, Color.WHITE);
-    		textFlowAppend("has joined the chat!  ", 16, false, Color.WHITE);
-    		textFlowAppend(formattedTime, 11, false, Color.GREY);
-    		textFlowAppend();
-        }
-        else if (message.contains(" has left the chat!"))
-        {
-        	textFlowAppend(arrOfStr[0] + " ", 16, true, Color.WHITE);
-    		textFlowAppend("has left the chat!  ", 16, false, Color.WHITE);
-    		textFlowAppend(formattedTime, 11, false, Color.GREY);
-    		textFlowAppend();
-        }
-        else if (message.contains("SERVER: closed."))
-        {
-    		textFlowAppend(message, 16, false, Color.RED);
-    		textFlowAppend(formattedTime, 11, false, Color.GREY);
-    		textFlowAppend();
-        }
-        else { 
-        	textFlowAppend(arrOfStr[0] + " ", 16, true, Color.WHITE);
-    		textFlowAppend(formattedTime, 11, false, Color.GREY);
-    		textFlowAppend();
-    		textFlowAppend(arrOfStr[1], 16, false, Color.WHITE);
-    		textFlowAppend();
-        }
-        
-        
-		scrollToEnd();
-	}
-
+	
+	// reads keyboard input field and sends a message to the server
 	@FXML
-	public void sendMessage()
-	{
-		String message = typeMessageTextField.getText();
+	public void sendMessage() {
+		String keyboardInput = typeMessageTextField.getText();
 		
-		if(message.isBlank())
-		{
+		// is empty?
+		if (keyboardInput.isBlank()) {
 			return;
 		}
 		
-		try {
-			outputStream.write(username + " " + message);
-			outputStream.newLine();
-			outputStream.flush();
-		} catch(IOException e) {
-			e.printStackTrace();
+		
+		// leave server
+		if (keyboardInput.equals("/quit")) {
+			try {
+				outputStream.write("4");
+				outputStream.newLine();
+				outputStream.flush();
+				
+				socket.close();
+				Platform.exit();
+			}
+			catch (Exception e) {
+				// ignore
+			}
+		}
+		// broadcast message
+		else {
+			
+			try {
+				outputStream.write("1>8^(" + keyboardInput);
+				outputStream.newLine();
+				outputStream.flush();
+			}
+			catch (Exception e) {
+				// ignore
+			}
 		}
 		
-		LocalTime currentTime = LocalTime.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-		String formattedTime = currentTime.format(formatter);
-        
-		textFlowAppend(username + " ", 16, true, Color.WHITE);
-		textFlowAppend(formattedTime, 11, false, Color.GREY);
-		textFlowAppend();
-		textFlowAppend(message, 16, false, Color.WHITE);
-		textFlowAppend();
-//		
 		typeMessageTextField.setText("");
 	}
 	
