@@ -187,6 +187,7 @@ public class ChatboxController implements Initializable {
 			try {
 				String serverInput = inputStream.readLine();
 				Platform.runLater(() -> {
+					
 					String[] message = serverInput.split(Pattern.quote(">8^("), 4);
 			        
 					switch (Integer.parseInt(message[0])) {
